@@ -18,6 +18,18 @@ let nodeID = 1;
 let board = [];
 let startDraw = undefined;
 
+function newBoard() {
+  nodes = [];
+  pins = [];
+  menu = undefined;
+  nodeReady = false;
+  nodeClick = false;
+  pinID = 1;
+  nodeID = 1;
+  board = [];
+  startDraw = undefined;
+}
+
 function setup() {
   createCanvas(windowWidth, windowHeight);
 }
@@ -34,6 +46,23 @@ function draw() {
   fill(50);
   stroke(70);
   rect(75, 75, windowWidth - 75 * 2, windowHeight - 150);
+
+  textSize(30);
+
+  if (
+    mouseX > 5 &&
+    mouseX < textWidth("CREATE") + 14 &&
+    mouseY < 35 &&
+    mouseY > 5
+  ) {
+    fill(135, 188, 36);
+  } else {
+    fill(74, 102, 140);
+  }
+
+  rect(5, 5, textWidth("CREATE") + 9, 30);
+  fill(255);
+  text("CREATE", 9, 32);
 
   if (startDraw) {
     stroke(0);
@@ -96,6 +125,7 @@ function draw() {
         mx: mouseX,
         my: mouseY,
         id: nodeID,
+        output: false,
       });
 
       pins.push({
@@ -143,11 +173,13 @@ function draw() {
       6
     );
 
-    if (
-      pins.find((m) => m.id == pins.find((k) => k.node == n.id).input) &&
-      pins.find((m) => m.id == pins.find((k) => k.node == n.id).input).output &&
-      n.x != 15
-    ) {
+    if (n.x != 15) {
+      n.output =
+        pins.find((m) => m.id == pins.find((k) => k.node == n.id).input) &&
+        pins.find((m) => m.id == pins.find((k) => k.node == n.id).input).output;
+    }
+
+    if (n.output) {
       fill(236, 34, 56);
     } else {
       fill(32, 36, 46);
@@ -162,6 +194,8 @@ function draw() {
   });
 
   pins.forEach((n) => {
+    n.output = nodes.find((k) => k.id == n.node).output;
+
     if (n.input && n.input !== "never") {
       if (pins.find((k) => k.id == n.input).output) {
         stroke(236, 34, 56);
@@ -201,74 +235,109 @@ function draw() {
     rect(menu.x, menu.y + 30, 200, 30);
     textSize(30);
     fill(255);
-    text("DELETE", menu.x, menu.y + 56);
+    text("DELETE", menu.x + (200 - textWidth("DELETE")) / 2, menu.y + 56);
   }
 
   noStroke();
 
+  let totalX = 0;
+
   for (var i = -2; i < chips.length; i++) {
     if (i == -2) {
       if (
-        mouseX > 5 &&
-        mouseX < 105 &&
+        mouseX > totalX + 5 &&
+        mouseX < totalX + 5 + textWidth("AND") + 9 &&
         mouseY > windowHeight - 35 &&
         mouseY < windowHeight - 35 + 30
       ) {
         fill(202);
-        rect(5, windowHeight - 35, 100, 30);
+        rect(totalX + 5, windowHeight - 35, textWidth("AND") + 9, 30);
         fill(0);
         textSize(30);
-        text("AND", 9, windowHeight - 9);
+        text("AND", totalX + 9, windowHeight - 9);
       } else {
         fill(48);
-        rect(5, windowHeight - 35, 100, 30);
+        rect(totalX + 5, windowHeight - 35, textWidth("AND") + 9, 30);
         fill(223);
         textSize(30);
-        text("AND", 9, windowHeight - 9);
+        text("AND", totalX + 9, windowHeight - 9);
       }
+
+      totalX += textWidth("AND") + 14;
     } else if (i == -1) {
       if (
-        mouseX > 110 &&
-        mouseX < 210 &&
+        mouseX > totalX + 5 &&
+        mouseX < totalX + 5 + textWidth("AND") + 9 &&
         mouseY > windowHeight - 35 &&
         mouseY < windowHeight - 35 + 30
       ) {
         fill(202);
-        rect(110, windowHeight - 35, 100, 30);
+        rect(totalX + 5, windowHeight - 35, textWidth("NOT") + 9, 30);
         fill(0);
         textSize(30);
-        text("NOT", 114, windowHeight - 9);
+        text("NOT", totalX + 9, windowHeight - 9);
       } else {
         fill(48);
-        rect(110, windowHeight - 35, 100, 30);
+        rect(totalX + 5, windowHeight - 35, textWidth("NOT") + 9, 30);
         fill(223);
         textSize(30);
-        text("NOT", 114, windowHeight - 9);
+        text("NOT", totalX + 9, windowHeight - 9);
       }
+
+      totalX += textWidth("NOT") + 14;
     } else {
       if (
-        mouseX > (i + 2) * 105 + 5 &&
-        mouseX < (i + 2) * 105 + 5 + 100 &&
+        mouseX > totalX + 5 &&
+        mouseX < totalX + 5 + textWidth(chips[i].name) + 9 &&
         mouseY > windowHeight - 35 &&
         mouseY < windowHeight - 35 + 30
       ) {
         fill(202);
-        rect((i + 2) * 105 + 5, windowHeight - 35, 100, 30);
+        rect(totalX + 5, windowHeight - 35, textWidth(chips[i].name) + 9, 30);
         fill(0);
         textSize(30);
-        text(chips[i].name, (i + 2) * 105 + 9, windowHeight - 9);
+        text(chips[i].name, totalX + 9, windowHeight - 9);
       } else {
         fill(48);
-        rect((i + 2) * 105 + 5, windowHeight - 35, 100, 30);
+        rect(totalX + 5, windowHeight - 35, textWidth(chips[i].name) + 9, 30);
         fill(223);
         textSize(30);
-        text(chips[i].name, (i + 2) * 105 + 9, windowHeight - 9);
+        text(chips[i].name, totalX + 9, windowHeight - 9);
       }
+
+      totalX += textWidth(chips[i].name) + 14;
     }
   }
 }
 
 function mouseClicked() {
+  if (
+    nodes.find(
+      (n) =>
+        n.mx < 100 &&
+        mouseX > 50 &&
+        mouseX < 100 &&
+        mouseY > Math.min(Math.max(75, n.my - 25), windowHeight - 125) &&
+        mouseY < Math.min(Math.max(75, n.my - 25), windowHeight - 125) + 50
+    )
+  ) {
+    nodes.find(
+      (n) =>
+        n.mx < 100 &&
+        mouseX > 50 &&
+        mouseX < 100 &&
+        mouseY > Math.min(Math.max(75, n.my - 25), windowHeight - 125) &&
+        mouseY < Math.min(Math.max(75, n.my - 25), windowHeight - 125) + 50
+    ).output = !nodes.find(
+      (n) =>
+        n.mx < 100 &&
+        mouseX > 50 &&
+        mouseX < 100 &&
+        mouseY > Math.min(Math.max(75, n.my - 25), windowHeight - 125) &&
+        mouseY < Math.min(Math.max(75, n.my - 25), windowHeight - 125) + 50
+    ).output;
+  }
+
   if (
     startDraw &&
     pins.find(
@@ -392,4 +461,5 @@ function newChip(data) {
     null,
     `?chips=${encodeURIComponent(btoa(JSON.stringify(chips)))}`
   );
+  newBoard();
 }
