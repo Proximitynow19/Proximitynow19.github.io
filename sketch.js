@@ -1,17 +1,15 @@
 let chips = [];
 
 if (new URLSearchParams(window.location.search).get("c")) {
-  try {
-    chips = JSON.parse(
-      window.pako.inflate(new URLSearchParams(window.location.search).get("c"))
-    );
+  chips = JSON.parse(
+    window.pako.inflate(new URLSearchParams(window.location.search).get("c"), {
+      to: "string",
+    })
+  );
 
-    if (typeof chips !== "object") {
-      chips = [];
+  if (typeof chips !== "object") {
+    chips = [];
 
-      window.history.pushState(null, null, `/logic.html`);
-    }
-  } catch {
     window.history.pushState(null, null, `/logic.html`);
   }
 }
@@ -786,7 +784,9 @@ function newChip(name) {
   window.history.pushState(
     null,
     null,
-    `?c=${encodeURIComponent(window.pako.deflate(JSON.stringify(chips)))}`
+    `?c=${encodeURIComponent(
+      window.pako.deflate(JSON.stringify(chips), { to: "string" })
+    )}`
   );
   newBoard();
 }
