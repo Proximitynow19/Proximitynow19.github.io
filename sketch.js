@@ -5,7 +5,11 @@ if (new URLSearchParams(window.location.search).get("chips")) {
     chips = JSON.parse(
       atob(new URLSearchParams(window.location.search).get("chips"))
     );
-  } catch {}
+  } catch {
+    window.history.pushState(null, null, `/`);
+  }
+} else {
+  window.history.pushState(null, null, `/`);
 }
 
 let nodes = [];
