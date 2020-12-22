@@ -1,21 +1,22 @@
 console.warn("%cDLS.JS", "font-size: 100px;");
 console.log(
-  "%cVersion: 1.0.0",
+  "%cVersion: 1.0.1",
   "font-weight: bold; font-size: large; color: green;"
 );
 
 let chips = [];
 
 if (new URLSearchParams(window.location.search).get("c")) {
-  chips = JSON.parse(
-    window.pako.inflate(new URLSearchParams(window.location.search).get("c"), {
-      to: "string",
-    })
-  );
-
-  if (typeof chips !== "object") {
-    chips = [];
-
+  try {
+    chips = JSON.parse(
+      window.pako.inflate(
+        new URLSearchParams(window.location.search).get("c"),
+        {
+          to: "string",
+        }
+      )
+    );
+  } catch {
     window.history.pushState(null, null, `/logic.html`);
   }
 }
