@@ -145,14 +145,6 @@ function draw() {
   }
 
   nodes.forEach((n) => {
-    if (pins.find((k) => k.node == n.id && k.pin == 0)) {
-      pins
-        .filter((k) => k.node == n.id && k.pin == 0)
-        .forEach((element) => {
-          element.output = n.output;
-        });
-    }
-
     if (
       (n.x == 15 ? mouseX < 50 : mouseX > windowWidth - 50) &&
       mouseY > n.y &&
@@ -185,12 +177,6 @@ function draw() {
     );
     noStroke();
 
-    if (n.x != 15) {
-      n.output =
-        pins.find((m) => m.id == pins.find((k) => k.node == n.id).input) &&
-        pins.find((m) => m.id == pins.find((k) => k.node == n.id).input).output;
-    }
-
     if (n.output) {
       fill(236, 34, 56);
     } else {
@@ -203,6 +189,28 @@ function draw() {
       50,
       50
     );
+  });
+
+  board.forEach((n) => {
+    noStroke();
+    fill(n.data.colour);
+    textSize(30);
+    rect(
+      n.x - (textWidth(n.data.name) + 40) / 2,
+      n.y -
+        Math.max(
+          n.data.nodes.filter((n) => n.x != 15).length * 25 + 5,
+          n.data.nodes.filter((n) => n.x == 15).length * 25 + 5
+        ) /
+          2,
+      textWidth(n.data.name) + 40,
+      Math.max(
+        n.data.nodes.filter((n) => n.x != 15).length * 25 + 5,
+        n.data.nodes.filter((n) => n.x == 15).length * 25 + 5
+      )
+    );
+    fill(255);
+    text(n.data.name, n.x - (textWidth(n.data.name) + 40) / 2 + 20, n.y + 11);
   });
 
   if (startDraw) {
@@ -361,30 +369,116 @@ function draw() {
       mouseX - (textWidth(holdingChip.name) + 40) / 2,
       mouseY -
         Math.max(
-          40,
-          holdingChip.nodes.filter((n) => n.x != 15).length * 25 + 5
+          holdingChip.nodes.filter((n) => n.x != 15).length * 25 + 5,
+          holdingChip.nodes.filter((n) => n.x == 15).length * 25 + 5
         ) /
           2,
       textWidth(holdingChip.name) + 40,
-      Math.max(40, holdingChip.nodes.filter((n) => n.x != 15).length * 25 + 5)
+      Math.max(
+        holdingChip.nodes.filter((n) => n.x != 15).length * 25 + 5,
+        holdingChip.nodes.filter((n) => n.x == 15).length * 25 + 5
+      )
     );
     fill(255);
     text(
       holdingChip.name,
       mouseX - (textWidth(holdingChip.name) + 40) / 2 + 20,
-      mouseY +
-        Math.max(
-          40,
-          holdingChip.nodes.filter((n) => n.x != 15).length * 5 + 5
-        ) /
-          2 -
-        10
+      mouseY + 11
     );
   }
+
+  let data = Execute(board, pins, nodes);
+
+  board = data.board;
+  pins = data.pins;
+  nodes = data.nodes;
+}
+
+function Execute(d__board, d__pins, d__nodes) {
+  let d_board = d__board;
+  let d_pins = d__pins;
+  let d_nodes = d__nodes;
+
+  d_nodes
+    .filter((n) => n.x == 15)
+    .forEach((n) => {
+      d_pins.find((m) => m.node == n.id).output = n.output;
+    });
+
+  d_pins
+    .filter((n) => n.input !== "never")
+    .forEach((n) => {
+      n.output = n.input && d_pins.find((k) => k.id == n.input).output;
+    });
+
+  d_board.forEach((n) => {
+    switch (n.data.type) {
+      case "and":
+        d_pins.filter((k) => k.node == n.id)[2].output =
+          d_pins.find(
+            (x) => x.id == d_pins.filter((k) => k.node == n.id)[0].input
+          ) &&
+          d_pins.find(
+            (x) => x.id == d_pins.filter((k) => k.node == n.id)[0].input
+          ).output &&
+          d_pins.find(
+            (x) => x.id == d_pins.filter((k) => k.node == n.id)[1].input
+          ) &&
+          d_pins.find(
+            (x) => x.id == d_pins.filter((k) => k.node == n.id)[1].input
+          ).output;
+        break;
+      case "not":
+        d_pins.filter((k) => k.node == n.id)[1].output = !(
+          d_pins.find(
+            (x) => x.id == d_pins.filter((k) => k.node == n.id)[0].input
+          ) &&
+          d_pins.find(
+            (x) => x.id == d_pins.filter((k) => k.node == n.id)[0].input
+          ).output
+        );
+        break;
+      case "custom":
+        let bdata = n.data.nodes;
+
+        bdata
+          .filter((s) => s.x == 15)
+          .forEach((s) => {
+            s.output =
+              d_pins.find((v) => v.node == n.id && v.pin == s.id).input &&
+              d_pins.find(
+                (q) =>
+                  q.id ==
+                  d_pins.find((v) => v.node == n.id && v.pin == s.id).input
+              ).output;
+          });
+
+        let data = Execute(n.data.data.board, n.data.data.pins, bdata);
+
+        d_pins
+          .filter((k) => k.node == n.id && k.input == "never")
+          .forEach((p) => {
+            p.output =
+              data.nodes.find((l) => l.x != 15 && l.id == p.pin) &&
+              data.nodes.find((l) => l.x != 15 && l.id == p.pin).output;
+          });
+
+        break;
+    }
+  });
+
+  d_nodes
+    .filter((n) => n.x != 15)
+    .forEach((n) => {
+      n.output = d_pins.find((k) => k.node == n.id).output;
+    });
+
+  return { board: d_board, pins: d_pins, nodes: d_nodes };
 }
 
 function mouseClicked() {
   let totalX = 0;
+  let beforeChip = holdingChip;
 
   holdingChip = undefined;
 
@@ -468,6 +562,84 @@ function mouseClicked() {
         mouseY > Math.min(Math.max(75, n.my - 25), windowHeight - 125) &&
         mouseY < Math.min(Math.max(75, n.my - 25), windowHeight - 125) + 50
     ).output;
+  }
+
+  if (
+    beforeChip &&
+    !holdingChip &&
+    mouseX > 75 + textWidth(beforeChip.name) + 40 / 2 + 15 &&
+    mouseX < windowWidth - 75 - textWidth(beforeChip.name) + 40 / 2 - 15 &&
+    mouseY >
+      75 +
+        Math.max(
+          beforeChip.nodes.filter((n) => n.x != 15).length * 25 + 5,
+          beforeChip.nodes.filter((n) => n.x == 15).length * 25 + 5
+        ) /
+          2 +
+        5 &&
+    mouseY <
+      windowHeight -
+        75 -
+        Math.max(
+          beforeChip.nodes.filter((n) => n.x != 15).length * 25 + 5,
+          beforeChip.nodes.filter((n) => n.x == 15).length * 25 + 5
+        ) /
+          2 -
+        5
+  ) {
+    let d_pins = [];
+
+    for (var i = 0; i < beforeChip.nodes.length; i++) {
+      d_pins.push(pinID);
+
+      pins.push({
+        x:
+          beforeChip.nodes[i].x == 15
+            ? mouseX - textWidth(beforeChip.name) + 40 / 2 - 10
+            : mouseX + textWidth(beforeChip.name) + 40 / 2 - 30,
+        y:
+          mouseY -
+          Math.max(
+            beforeChip.nodes.filter((n) => n.x != 15).length * 25 + 5,
+            beforeChip.nodes.filter((n) => n.x == 15).length * 25 + 5
+          ) /
+            2 +
+          (Math.max(
+            beforeChip.nodes.filter((n) => n.x != 15).length * 25 + 5,
+            beforeChip.nodes.filter((n) => n.x == 15).length * 25 + 5
+          ) /
+            beforeChip.nodes.filter((n) => n.x == beforeChip.nodes[i].x)
+              .length) *
+            (beforeChip.nodes
+              .filter((n) => n.x == beforeChip.nodes[i].x)
+              .indexOf(beforeChip.nodes[i]) +
+              1) -
+          Math.max(
+            beforeChip.nodes.filter((n) => n.x != 15).length * 25 + 5,
+            beforeChip.nodes.filter((n) => n.x == 15).length * 25 + 5
+          ) /
+            beforeChip.nodes.filter((n) => n.x == beforeChip.nodes[i].x)
+              .length /
+            2,
+        input: beforeChip.nodes[i].x == 15 ? undefined : "never",
+        output: false,
+        node: nodeID,
+        pin: beforeChip.nodes[i].id,
+        id: pinID,
+      });
+
+      pinID++;
+    }
+
+    board.push({
+      data: beforeChip,
+      x: mouseX,
+      y: mouseY,
+      pins: d_pins,
+      id: nodeID,
+    });
+
+    nodeID++;
   }
 
   if (
@@ -586,10 +758,14 @@ function mouseClicked() {
   }
 }
 
-function newChip(data) {
-  data.colour = `#${Math.floor(Math.random() * 16777215).toString(16)}`;
-  data.type = "custom";
-  chips.push(data);
+function newChip(name) {
+  chips.push({
+    name,
+    colour: `#${Math.floor(Math.random() * 16777215).toString(16)}`,
+    type: "custom",
+    data: { board, pins },
+    nodes,
+  });
   window.history.pushState(
     null,
     null,
