@@ -1,3 +1,9 @@
+console.warn("%cDLS.JS", "font-size: 100px;");
+console.log(
+  "%cVersion: 1.0.0",
+  "font-weight: bold; font-size: large; color: green;"
+);
+
 let chips = [];
 
 if (new URLSearchParams(window.location.search).get("c")) {
