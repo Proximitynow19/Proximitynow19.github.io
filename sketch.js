@@ -477,6 +477,15 @@ function Execute(d__board, d__pins, d__nodes) {
 }
 
 function mouseClicked() {
+  if (
+    mouseX > 5 &&
+    mouseX < textWidth("CREATE") + 14 &&
+    mouseY < 35 &&
+    mouseY > 5
+  ) {
+    newChip(prompt("name"));
+  }
+
   let totalX = 0;
   let beforeChip = holdingChip;
 
@@ -595,8 +604,8 @@ function mouseClicked() {
       pins.push({
         x:
           beforeChip.nodes[i].x == 15
-            ? mouseX - textWidth(beforeChip.name) + 40 / 2 - 10
-            : mouseX + textWidth(beforeChip.name) + 40 / 2 - 30,
+            ? mouseX - (textWidth(beforeChip.name) + 40) / 2
+            : mouseX + (textWidth(beforeChip.name) + 40) / 2,
         y:
           mouseY -
           Math.max(
