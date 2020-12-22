@@ -11,3 +11,10 @@ main {
   width: 100%;
   height: 100%;
 }
+
+#version {
+  color: white;
+  position: absolute;
+  top: 100%;
+  right: 100%;
+}
