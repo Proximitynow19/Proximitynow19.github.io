@@ -9,10 +9,14 @@ if (new URLSearchParams(window.location.search).get("chips")) {
 }
 
 let nodes = [];
+let pins = [];
 let menu = undefined;
 let nodeReady = false;
 let nodeClick = false;
-let nodeIDs = 1;
+let pinID = 1;
+let nodeID = 1;
+let board = [];
+let startDraw = undefined;
 
 function setup() {
   createCanvas(windowWidth, windowHeight);
@@ -30,6 +34,11 @@ function draw() {
   fill(50);
   stroke(70);
   rect(75, 75, windowWidth - 75 * 2, windowHeight - 150);
+
+  if (startDraw) {
+    stroke(0);
+    line(startDraw.x, startDraw.y, mouseX, mouseY);
+  }
 
   if (
     (mouseX < 50 || mouseX > windowWidth - 50) &&
@@ -86,36 +95,51 @@ function draw() {
         y: Math.min(Math.max(75, mouseY - 25), windowHeight - 125),
         mx: mouseX,
         my: mouseY,
-        px: mouseX < 100 ? 120 : windowWidth - 120,
-        py: Math.min(Math.max(75, mouseY - 25), windowHeight - 125) + 25,
-        id: nodeIDs,
+        id: nodeID,
       });
 
-      nodeIDs++;
+      pins.push({
+        x: mouseX < 100 ? 120 : windowWidth - 120,
+        y: Math.min(Math.max(75, mouseY - 25), windowHeight - 125) + 25,
+        input: mouseX < 100 ? "never" : undefined,
+        node: nodeID,
+        id: pinID,
+      });
+
+      pinID++;
+      nodeID++;
     }
   }
 
   nodes.forEach((n) => {
-    noStroke();
-    fill(58);
-    rect(
-      n.mx < 100 ? 15 : windowWidth - 35,
-      Math.min(Math.max(75, n.my - 25), windowHeight - 125),
-      20,
-      50
-    );
+    if (
+      (n.x == 15 ? mouseX < 50 : mouseX > windowWidth - 50) &&
+      mouseY > n.y &&
+      mouseY < n.y + 50 &&
+      !startDraw
+    ) {
+      nodeReady = true;
+
+      noStroke();
+      fill(126);
+      rect(n.x, n.y, 20, 50);
+    } else {
+      noStroke();
+      fill(58);
+      rect(
+        n.mx < 100 ? 15 : windowWidth - 35,
+        Math.min(Math.max(75, n.my - 25), windowHeight - 125),
+        20,
+        50
+      );
+    }
+
     fill(0);
     rect(
       n.mx < 100 ? 75 : windowWidth - 120,
       Math.min(Math.max(75, n.my - 25), windowHeight - 125) + 22,
       45,
       6
-    );
-    ellipse(
-      n.mx < 100 ? 120 : windowWidth - 120,
-      Math.min(Math.max(75, n.my - 25), windowHeight - 125) + 25,
-      20,
-      20
     );
     fill(32, 36, 46);
     ellipse(
@@ -126,66 +150,32 @@ function draw() {
     );
   });
 
-  if (
-    nodes.find(
-      (n) =>
-        mouseX > n.px - 10 &&
-        mouseX < n.px + 10 &&
-        mouseY > n.py - 10 &&
-        mouseY < n.py + 10
-    )
-  ) {
-    noStroke();
-    fill(178);
-    ellipse(
-      nodes.find(
-        (n) =>
-          mouseX > n.px - 10 &&
-          mouseX < n.px + 10 &&
-          mouseY > n.py - 10 &&
-          mouseY < n.py + 10
-      ).px,
-      nodes.find(
-        (n) =>
-          mouseX > n.px - 10 &&
-          mouseX < n.px + 10 &&
-          mouseY > n.py - 10 &&
-          mouseY < n.py + 10
-      ).py,
-      20,
-      20
-    );
-  }
-
-  if (
-    nodes.find(
-      (n) =>
-        (n.x == 15 ? mouseX < 50 : mouseX > windowWidth - 50) &&
-        mouseY > n.y &&
-        mouseY < n.y + 50
-    )
-  ) {
-    nodeReady = true;
+  pins.forEach((n) => {
+    if (n.input && n.input !== "never") {
+      stroke(0);
+      line(
+        pins.find((k) => k.id == n.input).x,
+        pins.find((k) => k.id == n.input).y,
+        n.x,
+        n.y
+      );
+    }
 
     noStroke();
-    fill(126);
-    rect(
-      nodes.find(
-        (n) =>
-          (n.x == 15 ? mouseX < 50 : mouseX > windowWidth - 50) &&
-          mouseY > n.y &&
-          mouseY < n.y + 50
-      ).x,
-      nodes.find(
-        (n) =>
-          (n.x == 15 ? mouseX < 50 : mouseX > windowWidth - 50) &&
-          mouseY > n.y &&
-          mouseY < n.y + 50
-      ).y,
-      20,
-      50
-    );
-  }
+
+    if (
+      mouseX > n.x - 10 &&
+      mouseX < n.x + 10 &&
+      mouseY > n.y - 10 &&
+      mouseY < n.y + 10
+    ) {
+      fill(178);
+      ellipse(n.x, n.y, 20, 20);
+    } else {
+      fill(0);
+      ellipse(n.x, n.y, 20, 20);
+    }
+  });
 
   if (menu) {
     stroke(65);
@@ -263,6 +253,72 @@ function draw() {
 }
 
 function mouseClicked() {
+  if (
+    startDraw &&
+    pins.find(
+      (n) =>
+        mouseX > n.x - 10 &&
+        mouseX < n.x + 10 &&
+        mouseY > n.y - 10 &&
+        mouseY < n.y + 10
+    ) &&
+    pins.find(
+      (n) =>
+        mouseX > n.x - 10 &&
+        mouseX < n.x + 10 &&
+        mouseY > n.y - 10 &&
+        mouseY < n.y + 10
+    ).input !== "never"
+  ) {
+    pins.find(
+      (n) =>
+        mouseX > n.x - 10 &&
+        mouseX < n.x + 10 &&
+        mouseY > n.y - 10 &&
+        mouseY < n.y + 10
+    ).input = pins.find((n) => n.x == startDraw.x && n.y == startDraw.y).id;
+
+    startDraw = undefined;
+  } else if (startDraw) {
+    startDraw = undefined;
+  } else {
+    if (
+      pins.find(
+        (n) =>
+          mouseX > n.x - 10 &&
+          mouseX < n.x + 10 &&
+          mouseY > n.y - 10 &&
+          mouseY < n.y + 10
+      ) &&
+      pins.find(
+        (n) =>
+          mouseX > n.x - 10 &&
+          mouseX < n.x + 10 &&
+          mouseY > n.y - 10 &&
+          mouseY < n.y + 10
+      ).input === "never"
+    ) {
+      startDraw = {
+        x: pins.find(
+          (n) =>
+            mouseX > n.x - 10 &&
+            mouseX < n.x + 10 &&
+            mouseY > n.y - 10 &&
+            mouseY < n.y + 10
+        ).x,
+        y: pins.find(
+          (n) =>
+            mouseX > n.x - 10 &&
+            mouseX < n.x + 10 &&
+            mouseY > n.y - 10 &&
+            mouseY < n.y + 10
+        ).y,
+      };
+    } else {
+      startDraw = undefined;
+    }
+  }
+
   if (
     nodes.find(
       (n) =>
