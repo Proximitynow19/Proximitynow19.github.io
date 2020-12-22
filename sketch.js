@@ -6,10 +6,10 @@ if (new URLSearchParams(window.location.search).get("chips")) {
       atob(new URLSearchParams(window.location.search).get("chips"))
     );
   } catch {
-    window.history.pushState(null, null, `/`);
+    window.history.pushState(null, null, `/logic.html`);
   }
 } else {
-  window.history.pushState(null, null, `/`);
+  window.history.pushState(null, null, `/logic.html`);
 }
 
 let nodes = [];
