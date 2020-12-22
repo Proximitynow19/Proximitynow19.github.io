@@ -821,10 +821,10 @@ function newChip(name) {
     data: { board, pins },
     nodes,
   });
-  window.history.pushState(
-    null,
-    null,
-    `?c=${encodeURIComponent(en(JSON.stringify(chips)))}`
-  );
+  // window.history.pushState(
+  //   null,
+  //   null,
+  //   `?c=${encodeURIComponent(en(JSON.stringify(chips)))}`
+  // );
   newBoard();
 }
