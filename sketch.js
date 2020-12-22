@@ -1,6 +1,6 @@
 console.warn("%cDLS.JS", "font-size: 100px;");
 console.log(
-  "%cVersion: 1.0.1",
+  "%cVersion: 1.0.2",
   "font-weight: bold; font-size: large; color: green;"
 );
 
@@ -781,8 +781,10 @@ function mouseClicked() {
 }
 
 function newChip(name) {
+  if (!name) return;
+
   chips.push({
-    name,
+    name: name.substring(0, 11).toUpperCase(),
     colour: `#${Math.floor(Math.random() * 16777215).toString(16)}`,
     type: "custom",
     data: { board, pins },
