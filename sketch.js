@@ -102,6 +102,7 @@ function draw() {
         x: mouseX < 100 ? 120 : windowWidth - 120,
         y: Math.min(Math.max(75, mouseY - 25), windowHeight - 125) + 25,
         input: mouseX < 100 ? "never" : undefined,
+        output: false,
         node: nodeID,
         id: pinID,
       });
@@ -141,7 +142,17 @@ function draw() {
       45,
       6
     );
-    fill(32, 36, 46);
+
+    if (
+      pins.find((m) => m.id == pins.find((k) => k.node == n.id).input) &&
+      pins.find((m) => m.id == pins.find((k) => k.node == n.id).input).output &&
+      n.x != 15
+    ) {
+      fill(236, 34, 56);
+    } else {
+      fill(32, 36, 46);
+    }
+
     ellipse(
       n.mx < 100 ? 75 : windowWidth - 75,
       Math.min(Math.max(75, n.my - 25), windowHeight - 125) + 25,
@@ -152,7 +163,12 @@ function draw() {
 
   pins.forEach((n) => {
     if (n.input && n.input !== "never") {
-      stroke(0);
+      if (pins.find((k) => k.id == n.input).output) {
+        stroke(236, 34, 56);
+      } else {
+        stroke(0);
+      }
+
       line(
         pins.find((k) => k.id == n.input).x,
         pins.find((k) => k.id == n.input).y,
@@ -221,13 +237,13 @@ function draw() {
         rect(110, windowHeight - 35, 100, 30);
         fill(0);
         textSize(30);
-        text("OR", 114, windowHeight - 9);
+        text("NOT", 114, windowHeight - 9);
       } else {
         fill(48);
         rect(110, windowHeight - 35, 100, 30);
         fill(223);
         textSize(30);
-        text("OR", 114, windowHeight - 9);
+        text("NOT", 114, windowHeight - 9);
       }
     } else {
       if (
