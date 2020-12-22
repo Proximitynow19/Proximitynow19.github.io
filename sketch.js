@@ -8,10 +8,6 @@ if (new URLSearchParams(window.location.search).get("chips")) {
   } catch {}
 }
 
-document.getElementById("desc").content += `\n\nChips:\nAND, OR${
-  chips.length > 0 ? ", " : ""
-}${chips.map((n) => n.name).join(", ")}`;
-
 let nodes = [];
 let menu = undefined;
 let nodeReady = false;
