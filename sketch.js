@@ -1,6 +1,6 @@
 console.warn("%cDLS.JS", "font-size: 100px;");
 console.log(
-  "%cVersion: 1.0.4",
+  "%cVersion: 1.0.5",
   "font-weight: bold; font-size: large; color: green;"
 );
 
@@ -22,7 +22,7 @@ if (new URLSearchParams(window.location.search).get("c")) {
       window.history.pushState(
         null,
         null,
-        `/logic.html${invis ? `&i=${invis}` : ""}`
+        `/logic.html${invis ? `?i=${invis}` : ""}`
       );
   }
 } else {
@@ -30,7 +30,7 @@ if (new URLSearchParams(window.location.search).get("c")) {
     window.history.pushState(
       null,
       null,
-      `/logic.html${invis ? `&i=${invis}` : ""}`
+      `/logic.html${invis ? `?i=${invis}` : ""}`
     );
 }
 
