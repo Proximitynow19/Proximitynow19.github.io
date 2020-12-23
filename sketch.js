@@ -1,10 +1,11 @@
 console.warn("%cDLS.JS", "font-size: 100px;");
 console.log(
-  "%cVersion: 1.0.2",
+  "%cVersion: 1.0.3",
   "font-weight: bold; font-size: large; color: green;"
 );
 
 let chips = [];
+let invis = new URLSearchParams(window.location.search).get("i");
 
 if (new URLSearchParams(window.location.search).get("c")) {
   try {
@@ -17,7 +18,11 @@ if (new URLSearchParams(window.location.search).get("c")) {
       )
     );
   } catch {
-    window.history.pushState(null, null, `/logic.html`);
+    window.history.pushState(
+      null,
+      null,
+      `/logic.html${invis ? `&i=${invis}` : ""}`
+    );
   }
 }
 
@@ -158,6 +163,8 @@ function draw() {
   }
 
   nodes.forEach((n) => {
+    if (invis) return;
+
     if (
       (n.x == 15 ? mouseX < 50 : mouseX > windowWidth - 50) &&
       mouseY > n.y &&
@@ -205,6 +212,8 @@ function draw() {
   });
 
   board.forEach((n) => {
+    if (invis) return;
+
     noStroke();
     fill(n.data.colour);
     textSize(30);
