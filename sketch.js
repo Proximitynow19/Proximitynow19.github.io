@@ -1,6 +1,6 @@
 console.warn("%cDLS.JS", "font-size: 100px;");
 console.log(
-  "%cVersion: 1.0.3",
+  "%cVersion: 1.0.4",
   "font-weight: bold; font-size: large; color: green;"
 );
 
@@ -18,12 +18,20 @@ if (new URLSearchParams(window.location.search).get("c")) {
       )
     );
   } catch {
+    if (window.location.protocol !== "file:")
+      window.history.pushState(
+        null,
+        null,
+        `/logic.html${invis ? `&i=${invis}` : ""}`
+      );
+  }
+} else {
+  if (window.location.protocol !== "file:")
     window.history.pushState(
       null,
       null,
       `/logic.html${invis ? `&i=${invis}` : ""}`
     );
-  }
 }
 
 let nodes = [];
@@ -54,6 +62,21 @@ function setup() {
 }
 
 function draw() {
+  if (invis && !new URLSearchParams(window.location.search).get("i")) {
+    if (window.location.protocol !== "file:")
+      window.history.pushState(
+        null,
+        null,
+        `/logic.html${
+          chips.length > 0
+            ? `?c=${encodeURIComponent(
+                window.pako.deflate(JSON.stringify(chips), { to: "string" })
+              )}&`
+            : "?"
+        }i=1`
+      );
+  }
+
   background(53);
   noStroke();
   fill(49);
