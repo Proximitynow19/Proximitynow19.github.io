@@ -1,6 +1,6 @@
 console.warn("%cDLS.JS", "font-size: 100px;");
 console.log(
-  "%cVersion: 1.0.5",
+  "%cVersion: 1.0.6",
   "font-weight: bold; font-size: large; color: green;"
 );
 
@@ -460,53 +460,104 @@ function Execute(d__board, d__pins, d__nodes) {
     switch (n.data.type) {
       case "and":
         d_pins.filter((k) => k.node == n.id)[2].output =
+          d_pins.filter((k) => k.node == n.id)[0].input &&
           d_pins.find(
-            (x) => x.id == d_pins.filter((k) => k.node == n.id)[0].input
-          ) &&
-          d_pins.find(
-            (x) => x.id == d_pins.filter((k) => k.node == n.id)[0].input
+            (z) => z.id == d_pins.filter((k) => k.node == n.id)[0].input
           ).output &&
+          d_pins.filter((k) => k.node == n.id)[1].input &&
           d_pins.find(
-            (x) => x.id == d_pins.filter((k) => k.node == n.id)[1].input
-          ) &&
-          d_pins.find(
-            (x) => x.id == d_pins.filter((k) => k.node == n.id)[1].input
+            (z) => z.id == d_pins.filter((k) => k.node == n.id)[1].input
           ).output;
         break;
       case "not":
         d_pins.filter((k) => k.node == n.id)[1].output = !(
+          d_pins.filter((k) => k.node == n.id)[0].input &&
           d_pins.find(
-            (x) => x.id == d_pins.filter((k) => k.node == n.id)[0].input
-          ) &&
-          d_pins.find(
-            (x) => x.id == d_pins.filter((k) => k.node == n.id)[0].input
+            (z) => z.id == d_pins.filter((k) => k.node == n.id)[0].input
           ).output
         );
         break;
       case "custom":
-        let bdata = n.data.nodes;
+        let _node_d = n.data.nodes;
 
-        bdata
-          .filter((s) => s.x == 15)
-          .forEach((s) => {
-            s.output =
-              d_pins.find((v) => v.node == n.id && v.pin == s.id).input &&
-              d_pins.find(
-                (q) =>
-                  q.id ==
-                  d_pins.find((v) => v.node == n.id && v.pin == s.id).input
-              ).output;
-          });
+        if (board.filter((h) => h.data.name === n.data.name).length <= 1) {
+          _node_d
+            .filter((l) => l.x == 15)
+            .forEach((l, z) => {
+              l.output = d_pins.filter(
+                (k) => k.node == n.id && k.input !== "never"
+              )[z].output;
+            });
+        } else {
+          if (
+            board.filter((h) => h.data.name === n.data.name).indexOf(n) ==
+            board.filter((h) => h.data.name === n.data.name).length - 1
+          ) {
+            _node_d
+              .filter((l) => l.x == 15)
+              .forEach((l, z) => {
+                l.output = d_pins.filter(
+                  (k) =>
+                    k.node ==
+                      board.filter((h) => h.data.name === n.data.name)[0].id &&
+                    k.input !== "never"
+                )[z].output;
+              });
+          } else {
+            _node_d
+              .filter((l) => l.x == 15)
+              .forEach((l, z) => {
+                l.output = d_pins.filter(
+                  (k) =>
+                    k.node ==
+                      board.filter((h) => h.data.name === n.data.name)[
+                        board
+                          .filter((h) => h.data.name === n.data.name)
+                          .indexOf(n) + 1
+                      ].id && k.input !== "never"
+                )[z].output;
+              });
+          }
+        }
 
-        let data = Execute(n.data.data.board, n.data.data.pins, bdata);
+        let re_data = Execute(n.data.data.board, n.data.data.pins, _node_d);
 
-        d_pins
-          .filter((k) => k.node == n.id && k.input == "never")
-          .forEach((p) => {
-            p.output =
-              data.nodes.find((l) => l.x != 15 && l.id == p.pin) &&
-              data.nodes.find((l) => l.x != 15 && l.id == p.pin).output;
-          });
+        n.data.data.board = re_data.board;
+        n.data.data.pins = re_data.pins;
+        n.data.nodes = re_data.nodes;
+
+        if (
+          board.filter((h) => h.data.name === n.data.name).length <= 1 ||
+          n.data.nodes.filter((i) => i.x == 15).length <= 1
+        ) {
+          re_data.nodes
+            .filter((l) => l.x != 15)
+            .forEach((l, z) => {
+              d_pins.filter((b) => b.node == n.id && b.input === "never")[
+                z
+              ].output = l.output;
+            });
+        } else {
+          re_data.nodes
+            .filter((l) => l.x != 15)
+            .forEach((l, z) => {
+              d_pins.filter(
+                (b) =>
+                  b.node ==
+                    board.filter((h) => h.data.name === n.data.name)[
+                      (((board
+                        .filter((h) => h.data.name === n.data.name)
+                        .indexOf(n) -
+                        1) %
+                        board.filter((h) => h.data.name === n.data.name)
+                          .length) +
+                        board.filter((h) => h.data.name === n.data.name)
+                          .length) %
+                        board.filter((h) => h.data.name === n.data.name).length
+                    ].id && b.input === "never"
+              )[z].output = l.output;
+            });
+        }
 
         break;
     }
@@ -678,7 +729,7 @@ function mouseClicked() {
         input: beforeChip.nodes[i].x == 15 ? undefined : "never",
         output: false,
         node: nodeID,
-        pin: beforeChip.nodes[i].id,
+        pin: beforeChip.nodes[i].id - beforeChip.nodes.length,
         id: pinID,
       });
 
